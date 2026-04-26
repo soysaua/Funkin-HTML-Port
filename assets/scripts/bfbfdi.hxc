@@ -1,0 +1,357 @@
+import flixel.FlxG;
+import funkin.play.PlayState;
+import funkin.play.stage.Stage;
+import funkin.graphics.FunkinSprite;
+import funkin.Paths;
+import flixel.FlxSprite;
+import flixel.tweens.FlxTween;
+import funkin.audio.VoicesGroup;
+import flixel.addons.display.FlxBackdrop; 
+import flixel.tweens.FlxEase;
+import funkin.Conductor;
+import funkin.play.character.BaseCharacter;
+import funkin.play.song.Song;
+import flixel.util.FlxTimer;
+import funkin.modding.module.ModuleHandler;
+import funkin.modding.base.ScriptedFlxRuntimeShader;
+import openfl.filters.ShaderFilter;
+import hxvlc.flixel.FlxVideoSprite;
+import funkin.util.Constants;
+import funkin.util.WindowUtil;
+import openfl.utils.Assets;
+import flixel.FlxCamera;
+import funkin.graphics.FunkinCamera;
+import flixel.addons.display.FlxRuntimeShader;
+import flixel.math.FlxMath;
+import flixel.text.FlxText;
+import lime.app.Application;
+import StringTools;
+
+import funkin.play.character.CharacterDataParser;
+import funkin.play.character.CharacterType;
+import funkin.play.components.HealthIcon;
+
+import flixel.util.FlxSave;
+
+class bfbfdi extends Stage
+{
+
+function new()
+	{
+		super('BFB');
+	}
+
+    var beam:FlxSprite;
+    var mount:FlxSprite;
+    var trees:FlxSprite;
+    var ground:FlxSprite;
+    var t:FlxSprite;
+    var logo:FlxSprite;
+var musthitshit:Bool = false;
+var coverPositions:Array<Float> = [0,0,0,0];
+
+override public function onCreate(){
+super.onCreate();
+        
+// beam
+        beam = new FlxSprite(-600, 50).loadGraphic(Paths.image('backgrounds/wrongfinger/balance'));
+        beam.scrollFactor.set(1, 1);
+        add(beam);
+
+        // mount
+        mount = new FlxSprite(-1550, -1450).loadGraphic(Paths.image('backgrounds/vocalchords/teardropyoylemountain'));
+        mount.scrollFactor.set(0.75, 0.75);
+        //mount.antialiasing = true;
+        mount.setGraphicSize(Std.int(mount.width * 3));
+        mount.updateHitbox();
+        add(mount);
+
+        // trees
+        trees = new FlxSprite(-1600, 1025).loadGraphic(Paths.image('backgrounds/vocalchords/teardroptrees'));
+        trees.setGraphicSize(Std.int(trees.width * 2));
+        trees.updateHitbox();
+        add(trees);
+
+        ground = new FlxSprite(-1000, 1450).loadGraphic(Paths.image('backgrounds/vocalchords/teardropground'));
+        ground.scrollFactor.set(1, 1);
+        add(ground);
+
+t = new FlxSprite(700, 0).loadGraphic(Paths.image('rendersnlogos/teardrop-portrait'));
+t.scrollFactor.set();
+t.setGraphicSize(Std.int(t.width * 0.65));
+t.updateHitbox();
+t.alpha = 0;
+
+add(t);
+t.cameras = [PlayState.instance.camHUD];
+
+        logo = new FlxSprite().loadGraphic(Paths.image('rendersnlogos/vocalchordstext'));
+        logo.frames = Paths.getSparrowAtlas('rendersnlogos/vocalchordstext');
+        logo.animation.addByPrefix('title', 'Symbol 3 copy', 24, true);
+        logo.animation.play('title');
+        logo.screenCenter();
+        logo.alpha = 0;
+        add(logo);
+        logo.cameras = [PlayState.instance.camHUD];
+
+   var bars = new FlxSprite(0, 0).loadGraphic(Paths.image('hud/bars'));
+    bars.scrollFactor.set();
+    add(bars);
+bars.screenCenter();
+    bars.cameras = [PlayState.instance.camHUD];
+    bars.alpha = 1;
+//OH MY GOD THIS FUCKING HAJFJDKFJDKF
+        var logojnj = new FlxSprite(1195, 640).loadGraphic(Paths.image('hud/logojnjm'));
+        add(logojnj);
+	logojnj.x = FlxG.width - logojnj.width - 10;
+	logojnj.y = FlxG.height - logojnj.height - 10;
+	logojnj.alpha = 0.5;
+	logojnj.scrollFactor.set(); // makes it fixed
+	logojnj.cameras = [PlayState.instance.camCutscene]; // same as 'camCutscene'
+
+        // text
+        texty = new FlxText(-200, 175, 1000, "You", 55);
+        //texty.setFormat(Paths.font("Shag-Lounge.OTF"), 55, FlxColor.WHITE, LEFT);
+        texty.alpha = 0;
+        //add(texty);
+        texty.cameras = [PlayState.instance.camHUD];
+
+}
+override public function onUpdate(event) {
+super.onUpdate(event);
+if(musthitshit){ 
+        PlayState.instance.currentStage.getGirlfriend().flipX = true;
+} else {
+        PlayState.instance.currentStage.getGirlfriend().flipX = false;
+}
+var healthBar = PlayState.instance.healthBar;
+        var P1 = PlayState.instance.iconP1;
+        var P2 = PlayState.instance.iconP2;
+
+        var percent = healthBar.percent * 0.01;
+        var barX = healthBar.x;
+        var barW = healthBar.width;
+
+        var P1Mult = barX + ((barW * percent) + (150 * P1.scale.x - 150) / 2 - 26);
+        var P2Mult = barX + ((barW * percent) - (150 * P2.scale.x) / 2 - 26 * 2);
+
+        P1.x = P1Mult - 110;
+        P1.origin.x = 240;
+        P1.flipX = true;
+
+        P2.x = P2Mult + 110;
+        P2.origin.x = -100;
+        P2.flipX = true;
+
+        healthBar.flipX = true;
+}
+
+override public function onBeatHit(event) {
+super.onBeatHit(event);
+var healthBar = PlayState.instance.healthBar;
+        var P1 = PlayState.instance.iconP1;
+        var P2 = PlayState.instance.iconP2;
+
+        var percent = healthBar.percent * 0.01;
+        var barX = healthBar.x;
+        var barW = healthBar.width;
+
+        var P1Mult = barX + ((barW * percent) + (150 * P1.scale.x - 150) / 2 - 26);
+        var P2Mult = barX + ((barW * percent) - (150 * P2.scale.x) / 2 - 26 * 2);
+
+        P1.x = P1Mult - 110;
+        P1.origin.x = 240;
+        P1.flipX = true;
+
+        P2.x = P2Mult + 110;
+        P2.origin.x = -100;
+        P2.flipX = true;
+
+        healthBar.flipX = true;
+}
+function makeGhost(char:BaseCharacter):Void {
+    // Create a FlxSprite and copy the current frame
+    var trail = new FlxSprite(char.x, char.y);
+    trail.frames = char.animation.frames;
+    trail.frame = char.animation.frame;
+    trail.scale.set(char.scale.x, char.scale.y);
+    trail.color = char.color;
+    trail.alpha = 1;
+    
+    // Match offsets
+    trail.offset.set(char.offset.x, char.offset.y);
+    // Add to stage
+    PlayState.instance.add(trail);
+
+    // Set Z-order
+    if (char == PlayState.instance.currentStage.getBoyfriend()) trail.zIndex = 300;
+    else if (char == PlayState.instance.currentStage.getDad()) trail.zIndex = 200;
+    else trail.zIndex = 100; // Girlfriend
+
+    // Tween X position with random offset
+    var offsetX = FlxG.random.bool() ? 200 : -200;
+    FlxTween.tween(trail, { x: trail.x + offsetX }, 4, { ease: FlxEase.circOut });
+
+    // Tween scale
+    FlxTween.tween(trail.scale, { x: trail.scale.x + 0.2, y: trail.scale.y + 0.2 }, 4, { ease: FlxEase.circOut });
+
+    // Fade out and destroy
+    FlxTween.tween(trail, { alpha: 0 }, 0.55, {
+        onComplete: function(tween:FlxTween) {
+            trail.kill();
+            trail.destroy();
+        }
+    });
+}
+override public function onStepHit(event) {
+super.onStepHit(event);
+var curStep = event.step;
+var healthBar = PlayState.instance.healthBar;
+        var P1 = PlayState.instance.iconP1;
+        var P2 = PlayState.instance.iconP2;
+
+        var percent = healthBar.percent * 0.01;
+        var barX = healthBar.x;
+        var barW = healthBar.width;
+
+        var P1Mult = barX + ((barW * percent) + (150 * P1.scale.x - 150) / 2 - 26);
+        var P2Mult = barX + ((barW * percent) - (150 * P2.scale.x) / 2 - 26 * 2);
+
+        P1.x = P1Mult - 110;
+        P1.origin.x = 240;
+        P1.flipX = true;
+
+        P2.x = P2Mult + 110;
+        P2.origin.x = -100;
+        P2.flipX = true;
+
+        healthBar.flipX = true;
+switch (curStep)
+        {
+case 1:
+        PlayState.instance.currentStage.getGirlfriend().flipX = true;
+#if !mobile
+ var playerStrumline = PlayState.instance.playerStrumline;
+var opponentStrumline = PlayState.instance.opponentStrumline;
+if (playerStrumline == null || opponentStrumline == null) return;
+
+var duration = 1.25;
+
+// Store original X positions
+var playerX = playerStrumline.x;
+var opponentX = opponentStrumline.x;
+
+// --- Tween strumline containers themselves ---
+FlxTween.tween(playerStrumline, {x: opponentX}, duration, {ease: FlxEase.cubeInOut});
+FlxTween.tween(opponentStrumline, {x: playerX}, duration, {ease: FlxEase.cubeInOut});
+
+// --- Tween notes individually ---
+for (i in 0...4) {
+    var playerNote = playerStrumline.strumlineNotes.members[i];
+    var oppNote = opponentStrumline.strumlineNotes.members[i];
+    if (playerNote == null || oppNote == null) continue;
+
+    // Move notes relative to their strumline's new X
+    var playerTargetX = opponentX + (playerNote.x - playerX);
+    var oppTargetX = playerX + (oppNote.x - opponentX);
+
+    FlxTween.tween(playerNote, {x: playerTargetX}, duration, {ease: FlxEase.cubeInOut});
+    FlxTween.tween(oppNote, {x: oppTargetX}, duration, {ease: FlxEase.cubeInOut});
+
+    // Tween hold notes if they exist
+    if (playerNote.holdNoteSprite != null) {
+        var hold = playerNote.holdNoteSprite;
+        var holdX = playerTargetX + (playerNote.width / 2) - (hold.width / 2);
+        FlxTween.tween(hold, {x: holdX}, duration, {ease: FlxEase.cubeInOut});
+    }
+
+    if (oppNote.holdNoteSprite != null) {
+        var hold = oppNote.holdNoteSprite;
+        var holdX = oppTargetX + (oppNote.width / 2) - (hold.width / 2);
+        FlxTween.tween(hold, {x: holdX}, duration, {ease: FlxEase.cubeInOut});
+    }
+}
+
+// --- Tween note splashes individually ---
+for (splash in playerStrumline.noteSplashes) {
+    var splashTargetX = splash.x + (opponentX - playerX);
+    FlxTween.tween(splash, {x: splashTargetX}, duration, {ease: FlxEase.cubeInOut});
+}
+
+for (splash in opponentStrumline.noteSplashes) {
+    var splashTargetX = splash.x + (playerX - opponentX);
+    FlxTween.tween(splash, {x: splashTargetX}, duration, {ease: FlxEase.cubeInOut});
+}
+#end
+            case 256:
+                PlayState.instance.currentCameraZoom = 0.775;
+                //PlayState.instance.camZooming = true;
+
+            case 512:
+                FlxTween.tween(ground, {alpha: 0}, 27, {ease: FlxEase.quadOut});
+                FlxTween.tween(trees, {alpha: 0}, 27, {ease: FlxEase.quadOut});
+                FlxTween.tween(mount, {alpha: 0}, 27, {ease: FlxEase.quadOut});
+                FlxTween.tween(beam, {alpha: 0}, 27, {ease: FlxEase.quadOut});
+
+            case 784:
+                FlxTween.tween(ground, {alpha: 1}, 0.625, {ease: FlxEase.quadOut});
+                FlxTween.tween(trees, {alpha: 1}, 0.725, {ease: FlxEase.quadOut});
+                FlxTween.tween(mount, {alpha: 1}, 0.725, {ease: FlxEase.quadOut});
+                FlxTween.tween(beam, {alpha: 1}, 0.725, {ease: FlxEase.quadOut});
+        }
+}
+public function onSongEvent(event):Void 
+		{
+super.onSongEvent(event);
+if (event.eventData.eventKind == 'FocusCamera') {
+var ev = event.eventData.value;
+
+        switch (ev.char) {
+            case "0":
+musthitshit = true;
+case "1":
+ musthitshit = false;               
+}
+}
+if (event.eventData.eventKind == 'Set Property') {
+var ev = event.eventData.value;
+			if(ev.value1 == 'defaultCamZoom'){
+			FlxTween.tween(PlayState.instance, { currentCameraZoom: ev.value2 }, 0.5, {
+			ease: FlxEase.quadOut
+			});
+			}
+			if(ev.value1 == 'camGame.visible'){
+			PlayState.instance.camGame.visible = ev.value2 == "true";
+			}
+			if(ev.value1 == 'camGame.alpha'){
+			PlayState.instance.camGame.alpha = Std.parseFloat(ev.value2);
+			}
+			if(ev.value1 == 'camHUD.alpha'){
+			PlayState.instance.camHUD.alpha = Std.parseFloat(ev.value2);
+			}
+			if(ev.value1 == 'camHUD.visible'){
+			PlayState.instance.camHUD.visible = ev.value2 == "true";
+			}
+}
+
+if (event.eventData.eventKind == 'Trigger') {
+var ev = event.eventData.value;
+switch (ev.value1)
+            {
+                 case "renderin":
+                    FlxTween.tween(t, {x: 150}, 1.75, {ease: FlxEase.circOut});
+                    FlxTween.tween(t, {alpha: 1}, 2, {ease: FlxEase.quadOut});
+                    FlxTween.tween(logo, {alpha: 1}, 3, {ease: FlxEase.quadOut});
+                    //FlxTween.tween(texty, {alpha: 1}, 3, {ease: FlxEase.quadOut});
+
+                case "renderout":
+                    FlxTween.tween(t, {x: 700}, 2, {ease: FlxEase.quadIn});
+                    FlxTween.tween(t, {alpha: 0}, 2, {ease: FlxEase.quadOut});
+                    FlxTween.tween(logo, {alpha: 0}, 1, {ease: FlxEase.quadOut});
+                    //FlxTween.tween(texty, {alpha: 0}, 1, {ease: FlxEase.quadOut});
+            }
+}
+
+} 
+      
+}

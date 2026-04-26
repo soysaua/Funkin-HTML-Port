@@ -1,0 +1,124 @@
+import flixel.FlxG;
+import funkin.play.PlayState;
+import funkin.play.stage.Stage;
+import funkin.graphics.FunkinSprite;
+import funkin.Paths;
+import flixel.FlxSprite;
+import flixel.tweens.FlxTween;
+import flixel.addons.display.FlxBackdrop; 
+import flixel.tweens.FlxEase;
+import funkin.Conductor;
+import funkin.play.song.Song;
+import funkin.play.event.SongEvent;
+import flixel.util.FlxTimer;
+import funkin.modding.module.ModuleHandler;
+import funkin.modding.base.ScriptedFlxRuntimeShader;
+import openfl.filters.ShaderFilter;
+import hxvlc.flixel.FlxVideoSprite;
+import funkin.util.Constants;
+import funkin.util.WindowUtil;
+import openfl.utils.Assets;
+import flixel.FlxCamera;
+import funkin.graphics.FunkinCamera;
+import flixel.addons.display.FlxRuntimeShader;
+import flixel.math.FlxMath;
+import flixel.text.FlxText;
+import lime.app.Application;
+
+import funkin.play.character.CharacterDataParser;
+import funkin.play.character.CharacterType;
+import funkin.play.components.HealthIcon;
+
+import flixel.util.FlxSave;
+
+class ChangeCharacter extends SongEvent
+{
+
+function new()
+	{
+		super('Change Character');
+	}
+	
+    override function handleEvent(data) {
+        if (PlayState.instance == null || PlayState.instance.currentStage == null) return;
+        if (PlayState.instance.isMinimalMode) return;
+
+        var game = PlayState.instance;
+
+   
+        var v1:String = '';
+var v2:String = '';
+        if (data != null && data.value != null && data.value.value1 != null) {
+            v1 = data.value.value1;
+            v2 = data.value.value2;
+        }
+triggerEvent('Change Character', v1, v2);
+
+
+    }
+
+    override function getEventSchema() {
+        return [
+            {
+                name: "value1",
+                title: "Intensity",
+                defaultValue: "1",
+                type: "string"
+            },
+            {
+                name: "value2",
+                title: "Unused",
+                defaultValue: "",
+                type: "string"
+            }
+        ];
+    }
+
+    override function getTitle() {
+        return "Change Character";
+    }
+
+	function triggerEvent(notUsed:String, character:String, characterName:String){
+		var charData = CharacterDataParser.parseCharacterData(characterName.toLowerCase());
+        CharacterDataParser.characterCache.h[CharacterDataParser.characterCache.h.length+1] = charData;
+
+         trace("CHARACTER ZINDEXES TWO THE SEQUEL");
+
+		switch(character) {
+			case 'bf':
+				var zIndex = PlayState.instance.currentStage.getBoyfriend().zIndex;
+                PlayState.instance.currentStage.getBoyfriend().destroy();
+				var boyfriend = CharacterDataParser.fetchCharacter(characterName.toLowerCase());
+                if (boyfriend != null) {
+                    boyfriend.set_characterType(CharacterType.BF);
+                    boyfriend.initHealthIcon(false);
+                    PlayState.instance.currentStage.addCharacter(boyfriend, CharacterType.BF);
+                    PlayState.instance.currentStage.getBoyfriend().zIndex = zIndex;
+                }
+			case 'gf':
+				var zIndex = PlayState.instance.currentStage.getBoyfriend().zIndex;
+				PlayState.instance.currentStage.getGirlfriend().destroy();
+				var girlfriend = CharacterDataParser.fetchCharacter(characterName.toLowerCase());
+                if (girlfriend != null) {
+                    girlfriend.set_characterType(CharacterType.GF);
+                    PlayState.instance.currentStage.addCharacter(girlfriend, CharacterType.GF);
+                    PlayState.instance.currentStage.getGirlfriend().zIndex = zIndex;
+                }
+			case 'dad':
+				var zIndex = PlayState.instance.currentStage.getBoyfriend().zIndex;
+				PlayState.instance.currentStage.getDad().destroy();
+				var dad = CharacterDataParser.fetchCharacter(characterName.toLowerCase());
+                if (dad != null) {
+                    dad.set_characterType(CharacterType.DAD);
+                    dad.initHealthIcon(true);
+                    PlayState.instance.currentStage.addCharacter(dad, CharacterType.DAD);
+                    PlayState.instance.currentStage.getDad().zIndex = zIndex;
+                }
+		}
+        PlayState.instance.currentStage.refresh();
+	}
+	
+	
+
+
+}
